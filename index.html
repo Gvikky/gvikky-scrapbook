@@ -14,22 +14,27 @@
             margin: 0;
             padding: 0;
             color: #333;
-        }   
+        } 
         .container {
             text-align: center;
             padding: 20px;
             animation: fadeIn 2s ease-in-out;
         }
         .title {
-            font-size: 3em;
-            margin-bottom: 10px;
-            color: #fff;
-            text-shadow: 2px 2px 4px #fcf6f6;
+            text-align: center;
+            font-family: 'Pacifico', cursive;
+            font-size: 3rem;
+            padding: 20px 10px 10px;
+            color: #bbdefb;
+            text-shadow: 0 0 10px #0d0e0e, 0 0 20px #2979ff;
         }
         .subtitle {
+            text-align: center;
+            font-family: 'Pacifico', cursive;
             font-size: 2em;
-            color: rgb(7, 22, 238);
-            text-shadow: 2px 2px 4px rgb(8, 8, 8)
+            padding: 20px 20px 10px;
+            color: #ff04de;
+            text-shadow: 0 0 10px #0d0e0e, 0 0 20px #06d4f8;
 
         }
         .text1 {
@@ -244,6 +249,9 @@
     </style>
 </head>
 <body>
+    <canvas id="fireworksCanvas" style="position: fixed; top: 0; left: 0; z-index: 999; pointer-events: none;"></canvas>
+    <audio id="fireworkSound" src="sss.mp3" preload="auto"></audio>
+
     <div class="title">Scrapbook for Nirmala</div>
     <div class="subtitle">Because even legends need a tribute!</div>
 
@@ -358,6 +366,7 @@
     </div>
     
     <script>
+        
         const audioPlayer = document.getElementById("audioPlayer");
         const audioSource = document.getElementById("audioSource");
         
@@ -368,10 +377,8 @@
         }
 
         function showChapter(chapterId) {
-            // Hide all elements with class names starting with 'page'
             document.querySelectorAll('[class^="page"]').forEach(page => page.style.display = 'none');
     
-            // Show the selected chapter
             document.getElementById(chapterId).style.display = 'block';
         }
 
@@ -383,7 +390,93 @@
         function closeImage() {
             document.getElementById("imageModal").style.display = "none";
         }
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        let w, h;
+        function resizeCanvas() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+    
+        let particles = [];
+    
+        function createFirework() {
+            const x = Math.random() * w;
+            const y = Math.random() * h / 2;
+            const colors = ['#ff0040', '#ff8000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff'];
+
+        // Play sound
+            const sound = document.getElementById('fireworkSound');
+            sound.currentTime = 0; // rewind to start
+            sound.play();
+
+            for (let i = 0; i < 100; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    radius: 2,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    angle: Math.random() * 2 * Math.PI,
+                    speed: Math.random() * 5 + 2,
+                    alpha: 1
+                });
+            }
+        }
+
+    
+        function updateParticles() {
+            ctx.clearRect(0, 0, w, h);
+            particles.forEach((p, i) => {
+                p.x += Math.cos(p.angle) * p.speed;
+                p.y += Math.sin(p.angle) * p.speed;
+                p.alpha -= 0.01;
+    
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${hexToRgb(p.color)},${p.alpha})`;
+                ctx.fill();
+    
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            });
+        }
+    
+        function animateFireworks() {
+            requestAnimationFrame(animateFireworks);
+            updateParticles();
+        }
+    
+        function hexToRgb(hex) {
+            hex = hex.replace('#', '');
+            const bigint = parseInt(hex, 16);
+            const r = (bigint >> 16) & 255;
+            const g = (bigint >> 8) & 255;
+            const b = bigint & 255;
+            return `${r},${g},${b}`;
+        }
+    
+        // Trigger fireworks every 1.5 seconds for the first 10 seconds
+        let counter = 0;
+        const fireworkInterval = setInterval(() => {
+            if (counter >= 7) {
+                clearInterval(fireworkInterval);
+            }
+            createFirework();
+            counter++;
+        }, 1500);
+    
+        animateFireworks();
+        function showChapter(chapterId) {
+            document.querySelectorAll('[class^="page"]').forEach(page => page.style.display = 'none');
+            document.getElementById(chapterId).style.display = 'block';
+            createFirework(); // Launch crackers with every chapter!
+        }
+
     </script>
+    
 
 </body>
 </html>
